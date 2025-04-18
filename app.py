@@ -11,7 +11,7 @@ load_dotenv()
 # Configuración
 WHATSAPP_TOKEN = os.environ.get('WHATSAPP_TOKEN')
 VERIFY_TOKEN = os.environ.get('VERIFY_TOKEN')
-PHONE_NUMBER_ID = os.environ.get('PHONE_NUMBER_ID')  
+PHONE_NUMBER_ID = os.environ.get('PHONE_NUMBER_ID')
 MAX_STICKER_SIZE = 512
 
 def smart_crop_to_square(img):
@@ -51,22 +51,21 @@ def webhook():
         for entry in data['entry']:
             for change in entry['changes']:
                 if 'messages' not in change['value']:
-                    continue  # Ignora eventos sin mensajes
+                    continue
                 
                 message = change['value']['messages'][0]
                 sender = message['from']
 
                 if 'image' in message:
                     headers = {
-                        "Authorization": f"Bearer {WHATSAPP_TOKEN}",
-                        "Content-Type": "application/json"
+                        "Authorization": f"Bearer {WHATSAPP_TOKEN}"
                     }
                     
                     # 1. Obtener metadatos de la imagen
                     image_id = message['image']['id']
                     image_url = f"https://graph.facebook.com/v18.0/{image_id}"
                     response = requests.get(image_url, headers=headers)
-                    response.raise_for_status()  # Lanza error si HTTP != 200
+                    response.raise_for_status()
                     image_json = response.json()
 
                     if 'url' not in image_json:
@@ -85,11 +84,13 @@ def webhook():
                     # 4. Subir sticker a WhatsApp
                     upload_url = "https://graph.facebook.com/v18.0/media"
                     files = {
-                        "file": ("sticker.png", sticker_data, "image/png"),
-                        "messaging_product": (None, "whatsapp"),
-                        "type": (None, "image/png")
+                        "file": ("sticker.png", sticker_data, "image/png")
                     }
-                    upload_response = requests.post(upload_url, headers=headers, files=files)
+                    data = {
+                        "messaging_product": "whatsapp",
+                        "type": "image/png"
+                    }
+                    upload_response = requests.post(upload_url, headers=headers, data=data, files=files)
                     upload_response.raise_for_status()
                     media_id = upload_response.json()['id']
                     
@@ -105,12 +106,14 @@ def webhook():
                     send_response = requests.post(send_url, headers=headers, json=payload)
                     send_response.raise_for_status()
 
-    except requests.exceptions.RequestException as e:
-        print(f"Error en la solicitud HTTP: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"Error HTTP en la API: {str(e)}. Respuesta: {e.response.text if e.response else 'No response'}"
+        print(error_msg)
+        return jsonify({"status": "error", "message": error_msg}), 500
     except Exception as e:
-        print(f"Error inesperado: {str(e)}")
-        return jsonify({"status": "error", "message": str(e)}), 500
+        error_msg = f"Error inesperado: {str(e)}"
+        print(error_msg)
+        return jsonify({"status": "error", "message": error_msg}), 500
 
     return jsonify({"status": "success"}), 200
 
