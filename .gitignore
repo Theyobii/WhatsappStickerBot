@@ -1,2 +1,11 @@
+# Archivos de entorno
 .env
-__pycache__
+
+# Entornos virtuales (opcional)
+venv/
+env/
+
+# Cache de Python (opcional)
+__pycache__/
+*.py[cod]
+
