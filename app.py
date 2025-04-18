@@ -4,12 +4,14 @@ from PIL import Image
 import io
 import os
 from datetime import datetime
+from dotenv import load_dotenv
 
 app = Flask(__name__)
+load_dotenv()       
 
 # Configuración
-WHATSAPP_TOKEN = "TU_TOKEN_DE_WHATSAPP_BUSINESS"
-VERIFY_TOKEN = "TU_VERIFY_TOKEN"
+WHATSAPP_TOKEN = os.environ.get('WHATSAPP_TOKEN')
+VERIFY_TOKEN = os.environ.get('VERIFY_TOKEN')
 STICKER_COMMAND = "/sticker"
 MAX_STICKER_SIZE = 512  # Tamaño máximo recomendado para stickers en WhatsApp
 
